@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML/CSS練習ページ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --green: #16a34a;
+      --green-light: #dcfce7;
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --muted: #64748b;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --radius: 12px;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, var(--blue) 0%, #1d4ed8 100%);
+      color: #fff;
+      padding: 20px 24px 24px;
+    }
+
+    .page-header h1 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .page-header .intro {
+      margin: 0 0 16px;
+      font-size: 0.95rem;
+      opacity: 0.95;
+    }
+
+    .page-header .intro li {
+      margin-bottom: 4px;
+    }
+
+    .safety-box {
+      background: var(--danger-light);
+      border: 2px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      color: #7f1d1d;
+    }
+
+    .safety-box strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--danger);
+    }
+
+    .safety-box ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      font-size: 0.9rem;
+    }
+
+    .safety-box li {
+      margin-bottom: 4px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+
+    .toolbar select {
+      font-size: 1rem;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      min-width: 200px;
+    }
+
+    .btn {
+      font-size: 1rem;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s, transform 0.1s;
+      min-height: 48px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: #15803d;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--blue);
+      border: 2px solid var(--blue);
+    }
+
+    .btn-outline:hover {
+      background: var(--blue-light);
+    }
+
+    .btn-danger {
+      background: #fff;
+      color: var(--danger);
+      border: 2px solid var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-light);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 16px 24px 24px;
+      min-height: 420px;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 280px;
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      font-weight: 700;
+      font-size: 1rem;
+      background: var(--blue-light);
+      color: var(--blue);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header.css-header {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .panel-header.preview-header {
+      background: #f8fafc;
+      color: var(--text);
+    }
+
+    .editor {
+      flex: 1;
+      width: 100%;
+      min-height: 240px;
+      padding: 14px;
+      border: none;
+      resize: vertical;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      background: #fafbfc;
+      color: var(--text);
+    }
+
+    .editor:focus {
+      outline: 3px solid var(--blue-light);
+      background: #fff;
+    }
+
+    .preview-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      min-height: 240px;
+    }
+
+    .preview-iframe {
+      flex: 1;
+      width: 100%;
+      min-height: 240px;
+      border: none;
+      background: #fff;
+    }
+
+    .preview-note {
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .help-section {
+      margin: 0 24px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .help-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .help-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .help-card h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      color: var(--blue);
+    }
+
+    .help-card.css-help h2 {
+      color: var(--green);
+    }
+
+    .help-card dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 16px;
+      font-size: 0.9rem;
+    }
+
+    .help-card dt {
+      font-family: "Consolas", "Courier New", monospace;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .help-card dd {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .save-status {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>HTML/CSS練習ページ</h1>
+    <ul class="intro">
+      <li>左のHTMLと中央のCSSを書き換えると、右のプレビューが変わります。</li>
+      <li>本名、住所、電話番号、メールアドレス、顔写真は入力しないでください。</li>
+      <li>完成したらスクリーンショットをMetaMoJiに提出してください。</li>
+    </ul>
+    <div class="safety-box" role="note" aria-label="安全ルール">
+      <strong>安全ルール（必ず守ってください）</strong>
+      <ul>
+        <li>本名、住所、電話番号、メールアドレスは書かない</li>
+        <li>顔写真や友達の写真を使わない</li>
+        <li>友達の名前を勝手に書かない</li>
+        <li>今回はJavaScriptは使わない</li>
+        <li>完成したらスクリーンショットを提出する</li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <label for="sample-select">サンプル：</label>
+    <select id="sample-select" aria-label="サンプルを選ぶ">
+      <option value="intro">自己紹介カード</option>
+      <option value="event">学校行事のお知らせ</option>
+      <option value="cafe">架空のカフェ紹介</option>
+      <option value="sauna">サウナ施設紹介</option>
+      <option value="job">求人カード</option>
+    </select>
+    <div class="btn-group">
+      <button type="button" class="btn btn-danger" id="btn-reset">初期状態に戻す</button>
+      <button type="button" class="btn btn-outline" id="btn-copy-html">HTMLをコピー</button>
+      <button type="button" class="btn btn-outline" id="btn-copy-css">CSSをコピー</button>
+      <button type="button" class="btn btn-danger" id="btn-clear-storage">保存データを削除</button>
+    </div>
+    <span class="save-status" id="save-status" aria-live="polite"></span>
+  </div>
+
+  <main class="workspace">
+    <section class="panel" aria-label="HTML入力">
+      <div class="panel-header">HTML</div>
+      <textarea id="html-input" class="editor" spellcheck="false" aria-label="HTMLコード"></textarea>
+    </section>
+    <section class="panel" aria-label="CSS入力">
+      <div class="panel-header css-header">CSS</div>
+      <textarea id="css-input" class="editor" spellcheck="false" aria-label="CSSコード"></textarea>
+    </section>
+    <section class="panel" aria-label="プレビュー">
+      <div class="panel-header preview-header">プレビュー</div>
+      <div class="preview-wrap">
+        <iframe
+          id="preview-frame"
+          class="preview-iframe"
+          title="プレビュー"
+          sandbox=""
+          referrerpolicy="no-referrer"
+        ></iframe>
+        <p class="preview-note">プレビューではJavaScriptは実行されません。画像は安全のため表示されません。</p>
+      </div>
+    </section>
+  </main>
+
+  <aside class="help-section" aria-label="学習支援">
+    <div class="help-card">
+      <h2>HTMLの例</h2>
+      <dl>
+        <dt>&lt;h1&gt;</dt><dd>大きな見出し</dd>
+        <dt>&lt;p&gt;</dt><dd>文章</dd>
+        <dt>&lt;ul&gt;</dt><dd>箇条書き</dd>
+        <dt>&lt;li&gt;</dt><dd>箇条書きの1項目</dd>
+        <dt>&lt;div&gt;</dt><dd>まとまり</dd>
+        <dt>class</dt><dd>CSSで見た目を変えるための名前</dd>
+      </dl>
+    </div>
+    <div class="help-card css-help">
+      <h2>CSSの例</h2>
+      <dl>
+        <dt>color</dt><dd>文字の色</dd>
+        <dt>background-color</dt><dd>背景の色</dd>
+        <dt>font-size</dt><dd>文字の大きさ</dd>
+        <dt>text-align</dt><dd>文字の位置</dd>
+        <dt>border</dt><dd>枠線</dd>
+        <dt>padding</dt><dd>内側の余白</dd>
+        <dt>margin</dt><dd>外側の余白</dd>
+        <dt>border-radius</dt><dd>角の丸み</dd>
+      </dl>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var STORAGE_KEY = "html-css-practice-v1";
+      var DANGEROUS_TAGS = [
+        "script", "iframe", "object", "embed", "form", "input", "button",
+        "style", "link", "meta", "base", "frame", "frameset", "applet"
+      ];
+      var EVENT_ATTR_RE = /^on/i;
+      var JS_URL_RE = /^\s*javascript:/i;
+
+      var SAMPLES = {
+        intro: {
+          name: "自己紹介カード",
+          html: '<div class="card">\n' +
+            '  <h1>自己紹介カード</h1>\n' +
+            '  <p class="lead">好きなものを紹介してみよう</p>\n' +
+            '\n' +
+            '  <h2>好きなもの</h2>\n' +
+            '  <p>ここに好きなものを書きます。</p>\n' +
+            '\n' +
+            '  <h2>おすすめポイント</h2>\n' +
+            '  <ul>\n' +
+            '    <li>理由その1</li>\n' +
+            '    <li>理由その2</li>\n' +
+            '    <li>理由その3</li>\n' +
+            '  </ul>\n' +
+            '</div>',
+          css: 'body {\n' +
+            '  font-family: sans-serif;\n' +
+            '  background-color: #f5f5f5;\n' +
+            '}\n' +
+            '\n' +
+            '.card {\n' +
+            '  background-color: white;\n' +
+            '  padding: 24px;\n' +
+            '  border-radius: 16px;\n' +
+            '  border: 2px solid #dddddd;\n' +
+            '}\n' +
+            '\n' +
+            'h1 {\n' +
+            '  color: #2563eb;\n' +
+            '  text-align: center;\n' +
+            '}\n' +
+            '\n' +
+            '.lead {\n' +
+            '  font-size: 20px;\n' +
+            '  font-weight: bold;\n' +
+            '}\n' +
+            '\n' +
+            'h2 {\n' +
+            '  color: #16a34a;\n' +
+            '  border-bottom: 2px solid #16a34a;\n' +
+            '}\n' +
+            '\n' +
+            'li {\n' +
+            '  margin-bottom: 8px;\n' +
+            '}'
+        },
+        event: {
+          name: "学校行事のお知らせ",
+          html: '<div class="notice">\n' +
+            '  <p class="badge">お知らせ</p>\n' +
+            '  <h1>文化祭のご案内</h1>\n' +
+            '  <p class="date">開催日：10月25日（土）</p>\n' +
+            '\n' +
+            '  <h2>当日の内容</h2>\n' +
+            '  <ul>\n' +
+            '    <li>模擬店（1年生・2年生）</li>\n' +
+            '    <li>ステージ発表（吹奏楽部・ダンス部）</li>\n' +
+            '    <li>展示コーナー（美術部・写真部）</li>\n' +
+            '  </ul>\n' +
+            '\n' +
+            '  <p class="note">来場者の皆さま、お気をつけてお越しください。</p>\n' +
+            '</div>',
+          css: 'body {\n' +
+            '  font-family: sans-serif;\n' +
+            '  background-color: #fff7ed;\n' +
+            '}\n' +
+            '\n' +
+            '.notice {\n' +
+            '  background-color: white;\n' +
+            '  padding: 28px;\n' +
+            '  border-radius: 12px;\n' +
+            '  border: 3px solid #ea580c;\n' +
+            '}\n' +
+            '\n' +
+            '.badge {\n' +
+            '  display: inline-block;\n' +
+            '  background-color: #ea580c;\n' +
+            '  color: white;\n' +
+            '  padding: 4px 12px;\n' +
+            '  border-radius: 4px;\n' +
+            '  font-weight: bold;\n' +
+            '}\n' +
+            '\n' +
+            'h1 {\n' +
+            '  color: #c2410c;\n' +
+            '  text-align: center;\n' +
+            '}\n' +
+            '\n' +
+            '.date {\n' +
+            '  font-size: 18px;\n' +
+            '  text-align: center;\n' +
+            '  font-weight: bold;\n' +
+            '}\n' +
+            '\n' +
+            'h2 {\n' +
+            '  color: #2563eb;\n' +
+            '  border-left: 4px solid #2563eb;\n' +
+            '  padding-left: 12px;\n' +
+            '}\n' +
+            '\n' +
+            'li {\n' +
+            '  margin-bottom: 6px;\n' +
+            '}\n' +
+            '\n' +
+            '.note {\n' +
+            '  background-color: #fef3c7;\n' +
+            '  padding: 12px;\n' +
+            '  border-radius: 8px;\n' +
+            '}'
+        },
+        cafe: {
+          name: "架空のカフェ紹介",
+          html: '<div class="cafe">\n' +
+            '  <h1>カフェ・ひだまり</h1>\n' +
+            '  <p class="tagline">ゆったり過ごせる街のカフェ</p>\n' +
+            '\n' +
+            '  <h2>おすすめメニュー</h2>\n' +
+            '  <ul>\n' +
+            '    <li>季節のフルーツタルト</li>\n' +
+            '    <li>自家製レモネード</li>\n' +
+            '    <li>カフェラテ（ホット・アイス）</li>\n' +
+            '  </ul>\n' +
+            '\n' +
+            '  <h2>営業時間</h2>\n' +
+            '  <p>平日 10:00〜18:00 / 土日 9:00〜19:00</p>\n' +
+            '\n' +
+            '  <p class="address">架空市まちなか1-2-3</p>\n' +
+            '</div>',
+          css: 'body {\n' +
+            '  font-family: sans-serif;\n' +
+            '  background-color: #fefce8;\n' +
+            '}\n' +
+            '\n' +
+            '.cafe {\n' +
+            '  background-color: #fffbeb;\n' +
+            '  padding: 28px;\n' +
+            '  border-radius: 20px;\n' +
+            '  border: 2px dashed #ca8a04;\n' +
+            '}\n' +
+            '\n' +
+            'h1 {\n' +
+            '  color: #854d0e;\n' +
+            '  text-align: center;\n' +
+            '  font-family: Georgia, serif;\n' +
+            '}\n' +
+            '\n' +
+            '.tagline {\n' +
+            '  text-align: center;\n' +
+            '  font-style: italic;\n' +
+            '  color: #a16207;\n' +
+            '}\n' +
+            '\n' +
+            'h2 {\n' +
+            '  color: #16a34a;\n' +
+            '  margin-top: 20px;\n' +
+            '}\n' +
+            '\n' +
+            'li {\n' +
+            '  margin-bottom: 8px;\n' +
+            '}\n' +
+            '\n' +
+            '.address {\n' +
+            '  text-align: right;\n' +
+            '  color: #78716c;\n' +
+            '  font-size: 14px;\n' +
+            '}'
+        },
+        sauna: {
+          name: "サウナ施設紹介",
+          html: '<div class="sauna">\n' +
+            '  <h1>サウナ・そよ風</h1>\n' +
+            '  <p class="catch">ととのい体験を、あなたに</p>\n' +
+            '\n' +
+            '  <h2>施設の特徴</h2>\n' +
+            '  <ul>\n' +
+            '    <li>フィンランド式サウナ（90℃）</li>\n' +
+            '    <li>水風呂（16℃）</li>\n' +
+            '    <li>外気浴スペース完備</li>\n' +
+            '  </ul>\n' +
+            '\n' +
+            '  <h2>利用料金（架空）</h2>\n' +
+            '  <p>2時間 1,500円 / タオルセット +300円</p>\n' +
+            '\n' +
+            '  <p class="caution">水分補給を忘れずに。のぼせに注意してください。</p>\n' +
+            '</div>',
+          css: 'body {\n' +
+            '  font-family: sans-serif;\n' +
+            '  background-color: #ecfeff;\n' +
+            '}\n' +
+            '\n' +
+            '.sauna {\n' +
+            '  background-color: white;\n' +
+            '  padding: 28px;\n' +
+            '  border-radius: 12px;\n' +
+            '  border: 2px solid #0891b2;\n' +
+            '}\n' +
+            '\n' +
+            'h1 {\n' +
+            '  color: #0e7490;\n' +
+            '  text-align: center;\n' +
+            '}\n' +
+            '\n' +
+            '.catch {\n' +
+            '  text-align: center;\n' +
+            '  font-size: 18px;\n' +
+            '  color: #06b6d4;\n' +
+            '}\n' +
+            '\n' +
+            'h2 {\n' +
+            '  color: #2563eb;\n' +
+            '  border-bottom: 2px solid #06b6d4;\n' +
+            '  padding-bottom: 4px;\n' +
+            '}\n' +
+            '\n' +
+            'li {\n' +
+            '  margin-bottom: 8px;\n' +
+            '}\n' +
+            '\n' +
+            '.caution {\n' +
+            '  background-color: #cffafe;\n' +
+            '  padding: 12px;\n' +
+            '  border-radius: 8px;\n' +
+            '  color: #155e75;\n' +
+            '}'
+        },
+        job: {
+          name: "求人カード",
+          html: '<div class="job-card">\n' +
+            '  <p class="label">求人のお知らせ（架空）</p>\n' +
+            '  <h1>カフェスタッフ募集</h1>\n' +
+            '  <p class="company">カフェ・ひだまり（架空の店舗）</p>\n' +
+            '\n' +
+            '  <h2>仕事内容</h2>\n' +
+            '  <ul>\n' +
+            '    <li>接客・オーダー受付</li>\n' +
+            '    <li>ドリンク作りの補助</li>\n' +
+            '    <li>店内の清掃</li>\n' +
+            '  </ul>\n' +
+            '\n' +
+            '  <h2>応募条件</h2>\n' +
+            '  <p>週2日以上勤務できる方。未経験者歓迎。</p>\n' +
+            '\n' +
+            '  <p class="apply">詳細は店内掲示をご覧ください（架空の案内）</p>\n' +
+            '</div>',
+          css: 'body {\n' +
+            '  font-family: sans-serif;\n' +
+            '  background-color: #f1f5f9;\n' +
+            '}\n' +
+            '\n' +
+            '.job-card {\n' +
+            '  background-color: white;\n' +
+            '  padding: 28px;\n' +
+            '  border-radius: 8px;\n' +
+            '  border: 2px solid #475569;\n' +
+            '}\n' +
+            '\n' +
+            '.label {\n' +
+            '  background-color: #2563eb;\n' +
+            '  color: white;\n' +
+            '  display: inline-block;\n' +
+            '  padding: 4px 10px;\n' +
+            '  font-size: 14px;\n' +
+            '  border-radius: 4px;\n' +
+            '}\n' +
+            '\n' +
+            'h1 {\n' +
+            '  color: #1e293b;\n' +
+            '  margin-top: 12px;\n' +
+            '}\n' +
+            '\n' +
+            '.company {\n' +
+            '  color: #64748b;\n' +
+            '  font-size: 16px;\n' +
+            '}\n' +
+            '\n' +
+            'h2 {\n' +
+            '  color: #16a34a;\n' +
+            '  font-size: 18px;\n' +
+            '}\n' +
+            '\n' +
+            'li {\n' +
+            '  margin-bottom: 6px;\n' +
+            '}\n' +
+            '\n' +
+            '.apply {\n' +
+            '  background-color: #dcfce7;\n' +
+            '  padding: 12px;\n' +
+            '  border-radius: 6px;\n' +
+            '  text-align: center;\n' +
+            '  font-weight: bold;\n' +
+            '}'
+        }
+      };
+
+      var htmlInput = document.getElementById("html-input");
+      var cssInput = document.getElementById("css-input");
+      var previewFrame = document.getElementById("preview-frame");
+      var sampleSelect = document.getElementById("sample-select");
+      var saveStatus = document.getElementById("save-status");
+      var toastEl = document.getElementById("toast");
+      var currentSampleId = "intro";
+      var saveTimer = null;
+
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add("show");
+        setTimeout(function () {
+          toastEl.classList.remove("show");
+        }, 2200);
+      }
+
+      function isDangerousUrl(value) {
+        if (!value) return false;
+        var trimmed = String(value).trim();
+        return JS_URL_RE.test(trimmed) ||
+          /^\s*data:/i.test(trimmed) ||
+          /^\s*vbscript:/i.test(trimmed) ||
+          /^\s*\/\//.test(trimmed) ||
+          /^\s*https?:/i.test(trimmed);
+      }
+
+      function sanitizeUrlAttr(value) {
+        if (isDangerousUrl(value)) return "#";
+        return value;
+      }
+
+      function replaceImgWithPlaceholder(el) {
+        var alt = el.getAttribute("alt") || "画像（プレビューでは表示されません）";
+        var placeholder = document.createElement("span");
+        placeholder.className = "img-placeholder";
+        placeholder.setAttribute("role", "img");
+        placeholder.setAttribute("aria-label", alt);
+        placeholder.textContent = "[画像: " + alt + "]";
+        el.parentNode.replaceChild(placeholder, el);
+      }
+
+      function sanitizeElement(el) {
+        var tag = el.tagName ? el.tagName.toLowerCase() : "";
+        if (DANGEROUS_TAGS.indexOf(tag) !== -1) {
+          el.remove();
+          return;
+        }
+        if (tag === "img") {
+          replaceImgWithPlaceholder(el);
+          return;
+        }
+
+        var attrs = Array.prototype.slice.call(el.attributes);
+        for (var i = 0; i < attrs.length; i++) {
+          var name = attrs[i].name;
+          var value = attrs[i].value;
+          if (EVENT_ATTR_RE.test(name)) {
+            el.removeAttribute(name);
+            continue;
+          }
+          if (name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction" || name === "poster" || name === "background") {
+            if (isDangerousUrl(value)) {
+              el.removeAttribute(name);
+            } else if (name === "href" || name === "src") {
+              el.setAttribute(name, sanitizeUrlAttr(value));
+            }
+          }
+          if (/^srcset$/i.test(name)) {
+            el.removeAttribute(name);
+          }
+        }
+
+        var children = Array.prototype.slice.call(el.children);
+        for (var j = 0; j < children.length; j++) {
+          sanitizeElement(children[j]);
+        }
+      }
+
+      function sanitizeHTML(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString("<body>" + html + "</body>", "text/html");
+        var body = doc.body;
+        sanitizeElement(body);
+        return body.innerHTML;
+      }
+
+      function sanitizeCSS(css) {
+        var result = String(css);
+        result = result.replace(/@import\b[^;]*;?/gi, "/* @import は使用できません */");
+        result = result.replace(/url\s*\([^)]*\)/gi, "/* url() は使用できません */");
+        result = result.replace(/expression\s*\([^)]*\)/gi, "/* expression() は使用できません */");
+        result = result.replace(/javascript\s*:/gi, "/* javascript: は使用できません */");
+        result = result.replace(/@charset\b[^;]*;?/gi, "");
+        result = result.replace(/behavior\s*:/gi, "/* behavior: は使用できません */");
+        return result;
+      }
+
+      function buildSrcdoc(html, css) {
+        var safeHtml = sanitizeHTML(html);
+        var safeCss = sanitizeCSS(css);
+        return "<!DOCTYPE html>\n<html lang=\"ja\">\n<head>\n<meta charset=\"UTF-8\">\n<style>\n" +
+          safeCss + "\n.img-placeholder {\n  display: inline-block;\n  padding: 12px 16px;\n  background: #f1f5f9;\n  border: 2px dashed #94a3b8;\n  color: #64748b;\n  border-radius: 8px;\n  font-size: 14px;\n}\n</style>\n</head>\n<body>\n" +
+          safeHtml + "\n</body>\n</html>";
+      }
+
+      function updatePreview() {
+        var srcdoc = buildSrcdoc(htmlInput.value, cssInput.value);
+        previewFrame.srcdoc = srcdoc;
+      }
+
+      function getSample(id) {
+        return SAMPLES[id] || SAMPLES.intro;
+      }
+
+      function applySample(id, skipConfirm) {
+        var sample = getSample(id);
+        if (!skipConfirm) {
+          var ok = window.confirm(
+            "「" + sample.name + "」のサンプルに切り替えます。\n現在の入力内容は失われます。よろしいですか？"
+          );
+          if (!ok) {
+            sampleSelect.value = currentSampleId;
+            return;
+          }
+        }
+        currentSampleId = id;
+        sampleSelect.value = id;
+        htmlInput.value = sample.html;
+        cssInput.value = sample.css;
+        updatePreview();
+        saveToStorage();
+      }
+
+      function resetToInitial() {
+        var ok = window.confirm("HTMLとCSSを初期状態に戻します。\n現在の入力内容は失われます。よろしいですか？");
+        if (!ok) return;
+        applySample(currentSampleId, true);
+        showToast("初期状態に戻しました");
+      }
+
+      function saveToStorage() {
+        try {
+          var data = {
+            html: htmlInput.value,
+            css: cssInput.value,
+            sampleId: currentSampleId
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          saveStatus.textContent = "自動保存しました " + new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+        } catch (e) {
+          saveStatus.textContent = "保存できませんでした";
+        }
+      }
+
+      function scheduleSave() {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveToStorage, 400);
+      }
+
+      function loadFromStorage() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return false;
+          var data = JSON.parse(raw);
+          if (data.sampleId && SAMPLES[data.sampleId]) {
+            currentSampleId = data.sampleId;
+            sampleSelect.value = currentSampleId;
+          }
+          if (typeof data.html === "string") htmlInput.value = data.html;
+          if (typeof data.css === "string") cssInput.value = data.css;
+          saveStatus.textContent = "前回の続きを読み込みました";
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function clearStorage() {
+        var ok = window.confirm("保存されたデータを削除します。\nエディタの内容は初期状態に戻ります。よろしいですか？");
+        if (!ok) return;
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) { /* ignore */ }
+        applySample(currentSampleId, true);
+        saveStatus.textContent = "保存データを削除しました";
+        showToast("保存データを削除しました");
+      }
+
+      function copyText(text, label) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast(label + "をコピーしました");
+          }).catch(function () {
+            fallbackCopy(text, label);
+          });
+        } else {
+          fallbackCopy(text, label);
+        }
+      }
+
+      function fallbackCopy(text, label) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(label + "をコピーしました");
+        } catch (e) {
+          showToast("コピーに失敗しました。手動で選択してコピーしてください。");
+        }
+        document.body.removeChild(ta);
+      }
+
+      function init() {
+        if (!loadFromStorage()) {
+          applySample("intro", true);
+        } else {
+          updatePreview();
+        }
+
+        htmlInput.addEventListener("input", function () {
+          updatePreview();
+          scheduleSave();
+        });
+        cssInput.addEventListener("input", function () {
+          updatePreview();
+          scheduleSave();
+        });
+
+        sampleSelect.addEventListener("change", function () {
+          applySample(sampleSelect.value, false);
+        });
+
+        document.getElementById("btn-reset").addEventListener("click", resetToInitial);
+        document.getElementById("btn-copy-html").addEventListener("click", function () {
+          copyText(htmlInput.value, "HTML");
+        });
+        document.getElementById("btn-copy-css").addEventListener("click", function () {
+          copyText(cssInput.value, "CSS");
+        });
+        document.getElementById("btn-clear-storage").addEventListener("click", clearStorage);
+
+        updatePreview();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
