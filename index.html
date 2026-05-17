@@ -209,6 +209,73 @@
       color: var(--text);
     }
 
+    .preview-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-compact {
+      font-size: 0.9rem;
+      padding: 8px 14px;
+      min-height: 40px;
+      white-space: nowrap;
+    }
+
+    body.no-scroll {
+      overflow: hidden;
+    }
+
+    .fullscreen-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .fullscreen-overlay.is-open {
+      display: flex;
+    }
+
+    .fullscreen-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .fullscreen-toolbar h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--blue);
+    }
+
+    .fullscreen-iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #fff;
+      min-height: 0;
+    }
+
+    .fullscreen-note {
+      margin: 0;
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
     .editor {
       flex: 1;
       width: 100%;
@@ -378,13 +445,16 @@
       <textarea id="css-input" class="editor" spellcheck="false" aria-label="CSSコード"></textarea>
     </section>
     <section class="panel" aria-label="プレビュー">
-      <div class="panel-header preview-header">プレビュー</div>
+      <div class="panel-header preview-header preview-header-row">
+        <span>プレビュー</span>
+        <button type="button" class="btn btn-primary btn-compact" id="btn-preview-fullscreen">全体表示</button>
+      </div>
       <div class="preview-wrap">
         <iframe
           id="preview-frame"
           class="preview-iframe"
           title="プレビュー"
-          sandbox=""
+          sandbox="allow-same-origin"
           referrerpolicy="no-referrer"
         ></iframe>
         <p class="preview-note">プレビューではJavaScriptは実行されません。画像は安全のため表示されません。</p>
@@ -418,6 +488,29 @@
       </dl>
     </div>
   </aside>
+
+  <div
+    id="fullscreen-preview"
+    class="fullscreen-overlay"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="fullscreen-title"
+    aria-hidden="true"
+  >
+    <div class="fullscreen-toolbar">
+      <h2 id="fullscreen-title">プレビュー（全体表示）</h2>
+      <button type="button" class="btn btn-danger btn-compact" id="btn-close-fullscreen">閉じる</button>
+    </div>
+    <iframe
+      id="fullscreen-frame"
+      class="fullscreen-iframe"
+      title="プレビュー（全体表示）"
+      sandbox="allow-same-origin"
+      referrerpolicy="no-referrer"
+    ></iframe>
+    <p class="fullscreen-note">Escキーまたは「閉じる」で元の画面に戻れます。編集すると全体表示も更新されます。</p>
+  </div>
 
   <div id="toast" class="toast" role="status"></div>
 
@@ -732,11 +825,15 @@
       var htmlInput = document.getElementById("html-input");
       var cssInput = document.getElementById("css-input");
       var previewFrame = document.getElementById("preview-frame");
+      var fullscreenOverlay = document.getElementById("fullscreen-preview");
+      var fullscreenFrame = document.getElementById("fullscreen-frame");
       var sampleSelect = document.getElementById("sample-select");
       var saveStatus = document.getElementById("save-status");
       var toastEl = document.getElementById("toast");
       var currentSampleId = "intro";
       var saveTimer = null;
+      var previewBlobUrl = null;
+      var isFullscreenOpen = false;
 
       function showToast(message) {
         toastEl.textContent = message;
@@ -827,17 +924,71 @@
         return result;
       }
 
-      function buildSrcdoc(html, css) {
-        var safeHtml = sanitizeHTML(html);
-        var safeCss = sanitizeCSS(css);
+      function escapeStyleBreakout(text) {
+        return String(text).replace(/<\/style/gi, "<\\/style");
+      }
+
+      function buildPreviewDocument(html, css) {
+        var safeHtml = escapeStyleBreakout(sanitizeHTML(html));
+        var safeCss = escapeStyleBreakout(sanitizeCSS(css));
         return "<!DOCTYPE html>\n<html lang=\"ja\">\n<head>\n<meta charset=\"UTF-8\">\n<style>\n" +
           safeCss + "\n.img-placeholder {\n  display: inline-block;\n  padding: 12px 16px;\n  background: #f1f5f9;\n  border: 2px dashed #94a3b8;\n  color: #64748b;\n  border-radius: 8px;\n  font-size: 14px;\n}\n</style>\n</head>\n<body>\n" +
           safeHtml + "\n</body>\n</html>";
       }
 
+      function setFramePreview(frame, docHtml, blobUrl) {
+        if (blobUrl) {
+          frame.removeAttribute("srcdoc");
+          frame.src = blobUrl;
+        } else {
+          frame.removeAttribute("src");
+          frame.srcdoc = docHtml;
+        }
+      }
+
       function updatePreview() {
-        var srcdoc = buildSrcdoc(htmlInput.value, cssInput.value);
-        previewFrame.srcdoc = srcdoc;
+        var docHtml = buildPreviewDocument(htmlInput.value, cssInput.value);
+        var blobUrl = null;
+
+        if (previewBlobUrl) {
+          URL.revokeObjectURL(previewBlobUrl);
+          previewBlobUrl = null;
+        }
+
+        if (typeof Blob !== "undefined" && URL && URL.createObjectURL) {
+          try {
+            var blob = new Blob([docHtml], { type: "text/html;charset=utf-8" });
+            previewBlobUrl = URL.createObjectURL(blob);
+            blobUrl = previewBlobUrl;
+          } catch (e) {
+            /* srcdoc にフォールバック */
+          }
+        }
+
+        setFramePreview(previewFrame, docHtml, blobUrl);
+        if (isFullscreenOpen) {
+          setFramePreview(fullscreenFrame, docHtml, blobUrl);
+        }
+      }
+
+      function openFullscreenPreview() {
+        isFullscreenOpen = true;
+        fullscreenOverlay.hidden = false;
+        fullscreenOverlay.classList.add("is-open");
+        fullscreenOverlay.setAttribute("aria-hidden", "false");
+        document.body.classList.add("no-scroll");
+        updatePreview();
+        document.getElementById("btn-close-fullscreen").focus();
+      }
+
+      function closeFullscreenPreview() {
+        isFullscreenOpen = false;
+        fullscreenOverlay.classList.remove("is-open");
+        fullscreenOverlay.hidden = true;
+        fullscreenOverlay.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("no-scroll");
+        fullscreenFrame.removeAttribute("src");
+        fullscreenFrame.removeAttribute("srcdoc");
       }
 
       function getSample(id) {
@@ -975,8 +1126,22 @@
           copyText(cssInput.value, "CSS");
         });
         document.getElementById("btn-clear-storage").addEventListener("click", clearStorage);
+        document.getElementById("btn-preview-fullscreen").addEventListener("click", openFullscreenPreview);
+        document.getElementById("btn-close-fullscreen").addEventListener("click", closeFullscreenPreview);
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && isFullscreenOpen) {
+            closeFullscreenPreview();
+          }
+        });
 
         updatePreview();
+
+        window.addEventListener("beforeunload", function () {
+          if (previewBlobUrl) {
+            URL.revokeObjectURL(previewBlobUrl);
+          }
+        });
       }
 
       init();
