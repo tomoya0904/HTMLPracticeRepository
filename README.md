@@ -1,0 +1,2 @@
+# HTMLPracticeRepository
+情報の授業で生徒にHTMLとCSSを練習させるページをGitHub Pagesで公開する
